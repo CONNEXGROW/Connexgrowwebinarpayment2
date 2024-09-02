@@ -13,7 +13,6 @@
             box-sizing: border-box;
             color: #010f1c;
             font-family: "Jost", sans-serif;
-            ;
         }
 
         body {
@@ -33,8 +32,6 @@
             padding: 40px;
             overflow-y: auto;
             border-top: 10px solid #3eff09;
-            ;
-
         }
 
         .flex {
@@ -53,7 +50,6 @@
 
         .m10 {
             margin-top: 10px;
-
         }
 
         .m20 {
@@ -69,7 +65,6 @@
             background: #36ff09;
             color: #fff;
             padding: 0px 20px;
-
         }
 
         input:focus {
@@ -81,7 +76,6 @@
         }
 
         .get_qr {
-
             height: 200px;
             width: 200px;
             border: 1px solid #999;
@@ -97,70 +91,164 @@
         p {
             color: #7a7a7a;
             font-size: 16px;
-            line-height: 24px
+            line-height: 24px;
         }
 
         .im {
             max-width: 100%;
             width: 300px;
         }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .timer {
+            font-size: 18px;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .disclaimer {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .payment-status {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .warning {
+            color: red;
+            font-size: 14px;
+            margin-top: 20px;
+            display: none;
+        }
     </style>
     <script type="text/javascript">
         $(document).ready(function() {
-            $(".generate_qr").click(function() {
-                $(".form").hide();
-                $(".qr_code").show();
-                var num = $(".number").val();
-                var link = "upi://pay?pa=9471314033@ybl%26am=1000%26tn=" + num;
-                var upi = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + link;
-                console.log(upi);
-                $(".get_qr").attr("src", upi);
-            });
-            $(".download_now").click(function() {
-                var name = $(".name").val();
-                var num = $(".number").val();
-                var email = $(".email").val();
-                var id = $(".id").val();
-                if (num != "" && name != "" && email != "" && id != "") {
-                    /*$.post("back.php",{name:name,num:num,email:email,id:id},function(res) {
-                     if(res==1){
+            const paymentAmount = 100; // Replace 100 with the amount you want users to pay
 
-                     }
-                     else{
+            function validateFields() {
+                let isValid = true;
 
-                     }
-                    });*/
+                $(".form input").each(function() {
+                    if ($(this).val().trim() === "") {
+                        $(this).next(".error").show();
+                        isValid = false;
+                    } else {
+                        $(this).next(".error").hide();
+                    }
+                });
+
+                return isValid;
+            }
+
+            function submitForm() {
+                $(".form").submit(); // Submit the form
+            }
+
+            $(".generate_qr").click(function(event) {
+                event.preventDefault(); // Prevent form submission
+                if (validateFields()) {
+                    $(".form").hide();
+                    $(".qr_code").show();
+                    var num = $(".number").val();
+                    var link = `upi://pay?pa=9471314033@ybl&am=${paymentAmount}&tn=Payment for Webinar&pn=ConnexGrow`;
+                    var upi = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
+                    $(".get_qr").attr("src", upi);
+
+                    // Show warning message
+                    $(".warning").html(`
+                        <p>Please note: If you press 'DONE' without completing the payment, it will not be accepted. We will verify every transaction from our bank statements. Please ensure all details are filled correctly. If you think you have entered something wrong before making the payment, kindly refresh the page.</p>
+                        <p>We are not using other brands' payment gateways as this would increase the cost of our webinars. Therefore, we have developed our own payment process to keep prices affordable for you.</p>
+                    `).show();
+
+                    // Start a 5-minute countdown timer
+                    var timerDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+                    var endTime = Date.now() + timerDuration;
+
+                    function updateTimer() {
+                        var now = Date.now();
+                        var remaining = endTime - now;
+
+                        if (remaining <= 0) {
+                            clearInterval(timerInterval);
+                            $(".timer").text("Time's up!");
+                            submitForm(); // Submit the form after timer ends
+                        } else {
+                            var minutes = Math.floor(remaining / 60000);
+                            var seconds = Math.floor((remaining % 60000) / 1000);
+                            $(".timer").text(`${minutes}m ${seconds}s`);
+                        }
+                    }
+
+                    var timerInterval = setInterval(updateTimer, 1000);
+                    updateTimer(); // Initial call
+
+                    // Show the "Done" button and status message
+                    $(".payment-status").show();
                 } else {
-                    alert("Fill all fields correctly");
+                    alert("Please fill in all required fields.");
                 }
+            });
+
+            $(".done_payment").click(function(event) {
+                event.preventDefault(); // Prevent default form action
+                submitForm();
+                window.location.href = "thank_you.html"; // Redirect to thank you page
             });
         });
     </script>
 </head>
-
 <body>
     <section>
         <h1>CONNEXGROW WEBINAR PAYMENT</h1>
-        <div class="form">
+        <p class="disclaimer">
+            Please ensure all details are filled in accurately. ConnexGrow is not responsible for any issues or losses that may arise from incorrect information provided in this form.
+        </p>
+        <form action="https://formspree.io/f/xgvwqega" method="POST" class="form">
             <div class="flex m20">
                 <label>Full Name*</label>
-                <input type="text" name="name" placeholder="Full Name" class="m10 name">
+                <input type="text" name="name" placeholder="Full Name" class="m10 name" required>
+                <div class="error">This field is required</div>
             </div>
-           
-
-                <button class="generate_qr">NEXT</button>
-            </div>
-        </div>
-        <div class="qr_code m20">
-            <p>Scan the QR Code with any UPI App and pay the amount if payment is done you can go back to the app we send email after the payment conformation if any problem please contact us at:<a href="mailto:connexgrow2@gmail.com">connexgrow2@gmail.com</a>.</p>
-            <center><img src="Screenshot_2024-08-29-15-00-37-21_944a2809ea1b4cda6ef12d1db9048ed3.jpg" alt="QR CODE" class="get_qr m10"></center>
-            <center><img src="" class="im m10"></center>
             <div class="flex m20">
-                
+                <label>UPI ID which you will use for payment*</label>
+                <input type="text" name="upi" placeholder="Ex- UPI ID" class="m10 number" required>
+                <div class="error">This field is required</div>
             </div>
-            
+            <div class="flex m20">
+                <label>ConnexGrow Email ID*</label>
+                <input type="text" name="connex_email" placeholder="Ex- your.email@example.com" class="m10 connex_email" required>
+                <div class="error">This field is required</div>
+            </div>
+            <div class="flex m20">
+                <label>Email which you will use to join Google Meet*</label>
+                <input type="email" name="email" placeholder="Email" class="m10 email" required>
+                <div class="error">This field is required</div>
+            </div>
+            <div class="flex m20">
+                <button type="button" class="generate_qr">NEXT</button>
+            </div>
+        </form>
+        <div class="qr_code m20">
+            <p>Scan the QR Code with any UPI App and pay the amount.</p>
+            <center><img src="" alt="QR CODE" class="get_qr m10"></center>
+            <center><img src="" class="im m10"></center>
+            <div class="warning"></div> <!-- Warning message display -->
+            <div class="timer"></div> <!-- Timer display -->
+            <div class="payment-status">
+                <p>If you have paid the amount, click the button below to skip the countdown and complete your submission.</p>
+                <button type="button" class="done_payment">DONE</button>
+            </div>
         </div>
     </section>
 </body>
-
 </html>
